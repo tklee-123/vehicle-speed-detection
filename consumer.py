@@ -28,6 +28,21 @@ f60t80 = db["60-80"]
 f80t100 = db["80-100"]
 gt100 = db[">100"]
 
+model_path = 'yolov4-tiny.weights'
+config_path = 'yolov4.cfg'
+classes_path = 'coco.names'
+
+net = cv2.dnn.readNet(model_path, config_path)
+classes = []
+with open(classes_path, 'r') as f:
+    classes = f.read().strip().split('\n')
+layer_names = net.getUnconnectedOutLayersNames()
+
+def detect_objects(frame):
+    blob = cv2.dnn.blobFromImage(frame, 0.00392, (416, 416), (0, 0, 0), True, crop=False)
+    net.setInput(blob)
+    outs = net.forward(layer_names)
+    return outs
 def blackout(image):
     xBlack = 360
     yBlack = 300
@@ -80,8 +95,7 @@ def render_origin_video1(consumer,topic):
         fram_data = np.frombuffer(message.value, dtype=np.uint8)
         frame = cv2.imdecode(fram_data, cv2.IMREAD_COLOR)
         image = cv2.resize(frame, (WIDTH, HEIGHT))[cropBegin:750:,0:2400]
-        resultImage = blackout(image)
-        cv2.imshow('result1', resultImage)
+        cv2.imshow('result1', image)
 
         if cv2.waitKey(1) == ord('q'):
             break
@@ -90,8 +104,9 @@ def render_origin_video2(consumer,topic):
         fram_data = np.frombuffer(message.value, dtype=np.uint8)
         frame = cv2.imdecode(fram_data, cv2.IMREAD_COLOR)
         image = cv2.resize(frame, (WIDTH, HEIGHT))[cropBegin:750:,0:2400]
-        resultImage = blackout(image)
-        cv2.imshow('result2', resultImage)
+        cv2.line(image,(0,mark1),(1280,mark1),(0,0,255),2)
+        cv2.line(image,(0,mark2),(1280,mark2),(0,0,255),2)
+        cv2.imshow('result2', image)
 
         if cv2.waitKey(1) == ord('q'):
             break
@@ -109,6 +124,8 @@ def consume_video1(consumer, topic):
         frameTime = time.time()
         # Detect objects in the frame
         resultImage = blackout(image)
+        cv2.line(resultImage,(0,mark1),(1280,mark1),(0,0,255),2)
+        cv2.line(resultImage,(0,mark2),(1280,mark2),(0,0,255),2)
 
         frameCounter = frameCounter + 1
 
@@ -172,16 +189,23 @@ def consume_video1(consumer, topic):
             ty = int(trackedPosition.top())
             tw = int(trackedPosition.width())
             th = int(trackedPosition.height())
-
+            cv2.rectangle(resultImage, (tx, ty), (tx + tw, ty + th), (0,255,0), 2)
             #ESTIMATE SPEED-----------------------------------------------------
             if carID not in startTracker and mark2 > ty+th > mark1 and ty < mark1:
                 startTracker[carID] = frameTime
-                print(f'Start tracking car {carID} at {frameTime}')
+                print(f'Start tracking car land1 at {frameTime}')
             elif carID in startTracker and carID not in endTracker and mark2 < ty+th:
                 endTracker[carID] = frameTime
                 speed = estimateSpeed(carID)
-                print(f'End tracking car {carID} at {frameTime}, speed: {speed}')
-                saveCar(speed, frame[ty:ty + th, tx:tx + tw],topic)
+                print(f'End tracking car land1 at {frameTime}, speed: {speed}')
+                saveCar(speed, frame[ty:ty + th, tx:tx + tw],"land1")
+        cv2.imshow('result3', resultImage)
+
+        if cv2.waitKey(1) == ord('q'):
+            break
+
+    cv2.destroyAllWindows()
+        
                 
 
 def consume_video2(consumer, topic):
@@ -195,6 +219,8 @@ def consume_video2(consumer, topic):
         frameTime = time.time()
         # Detect objects in the frame
         resultImage = blackout(image)
+        cv2.line(resultImage,(0,mark1),(1280,mark1),(0,0,255),2)
+        cv2.line(resultImage,(0,mark2),(1280,mark2),(0,0,255),2)
 
         frameCounter = frameCounter + 1
 
@@ -258,21 +284,26 @@ def consume_video2(consumer, topic):
             ty = int(trackedPosition.top())
             tw = int(trackedPosition.width())
             th = int(trackedPosition.height())
-
+            cv2.rectangle(resultImage, (tx, ty), (tx + tw, ty + th), (0,255,0), 2)
             #ESTIMATE SPEED-----------------------------------------------------
             if carID not in startTracker and mark2 > ty+th > mark1 and ty < mark1:
                 startTracker[carID] = frameTime
-                print(f'Start tracking car {carID} at {frameTime}')
+                print(f'Start tracking car land1 at {frameTime}')
             elif carID in startTracker and carID not in endTracker and mark2 < ty+th:
                 endTracker[carID] = frameTime
                 speed = estimateSpeed(carID)
-                print(f'End tracking car {carID} at {frameTime}, speed: {speed}')
-                saveCar(speed, frame[ty:ty + th, tx:tx + tw],topic)
+                print(f'End tracking car land1 at {frameTime}, speed: {speed}')
+                saveCar(speed, frame[ty:ty + th, tx:tx + tw],"land1")
+        cv2.imshow('result4', resultImage)
+
+        if cv2.waitKey(1) == ord('q'):
+            break
+
+    cv2.destroyAllWindows()
                 
 
 def main():
     topic1 = "testa"
-    topic2 = 'testb'
     topic4 = 'testd'
     consumer1 = KafkaConsumer(
         topic1,

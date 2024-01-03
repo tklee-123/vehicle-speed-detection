@@ -30,7 +30,7 @@ def main():
     topic1 = 'testa'
     topic4 = 'testd'
     video_path1 = 'files/videoTest.mp4'
-    video_path2 = 'files/a.mp4'
+    video_path2 = 'files/cars.mp4'
     
     producer_thread1 = threading.Thread(target=publish_video_to_kafka, args=(producer, topic1, video_path1))
     producer_thread4 = threading.Thread(target=publish_video_to_kafka, args=(producer, topic4, video_path2))

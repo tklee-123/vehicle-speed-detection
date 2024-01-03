@@ -7,23 +7,51 @@ def plot_speed_distribution(consumer, speed_ranges):
     plt.ion()  # Enable Matplotlib's interactive mode
 
     try:
+        land1_counts = {range_: 0 for range_ in speed_ranges}
+        land2_counts = {range_: 0 for range_ in speed_ranges}
+
         for message in consumer:
             data = json.loads(message.value)
 
-            # Extract speed counts from different ranges
-            lt20_count = data.get('lt20_count', 0)
-            f20t40_count = data.get('f20t40_count', 0)
-            f40t60_count = data.get('f40t60_count', 0)
-            f60t80_count = data.get('f60t80_count', 0)
-            f80t100_count = data.get('f80t100_count', 0)
-            gt100_count = data.get('gt100_count', 0)
+            # Extract speed counts for each land
+            land = data.get('land', None)
+            if land is None:
+                continue
 
-            # Plot histogram
+            speed_range_counts = {range_: data.get(range_, 0) for range_ in speed_ranges}
+
+            # Update counts based on land
+            if land == 'land1':
+                land1_counts = speed_range_counts
+            elif land == 'land2':
+                land2_counts = speed_range_counts
+
+            # Plot histograms for both lands
             plt.clf()
-            plt.bar(speed_ranges, [lt20_count, f20t40_count, f40t60_count, f60t80_count, f80t100_count, gt100_count], color=['blue', 'orange', 'green', 'red', 'purple', 'brown'])
+            width = 0.35
+            x = range(len(speed_ranges))
+
+            plt.bar(
+                [i - width/2 for i in x],
+                [land1_counts[range_] for range_ in speed_ranges],
+                width,
+                label='Land1',
+                color='blue'
+            )
+
+            plt.bar(
+                [i + width/2 for i in x],
+                [land2_counts[range_] for range_ in speed_ranges],
+                width,
+                label='Land2',
+                color='orange'
+            )
+
             plt.xlabel('Speed Range')
             plt.ylabel('Number of Cars')
-            plt.title(f'Speed Distribution - {data["timestamp"]}')
+            plt.title(f'Speed Distribution Comparison - {data["timestamp"]}')
+            plt.xticks(x, speed_ranges)
+            plt.legend()
             plt.pause(0.1)
 
     except KeyboardInterrupt:
@@ -31,6 +59,7 @@ def plot_speed_distribution(consumer, speed_ranges):
     finally:
         plt.ioff()  # Turn off Matplotlib's interactive mode
         plt.show()
+
 
 def main():
     topic3 = 'testc'

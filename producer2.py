@@ -18,27 +18,41 @@ gt100 = db[">100"]
 
 def send_data_to_kafka(producer, topic):
     while True:
+        # Assume you have a collection named 'speed_data' with documents having 'land' and 'speed' fields
+        pipeline = [
+            {"$group": {"_id": {"land": "$land", "speed": "$speed"}, "count": {"$sum": 1}}}
+        ]
 
-        # Assume you have speed data in different ranges
-        lt20_count = db['<20'].count_documents({})
-        f20t40_count = db['20-40'].count_documents({})
-        f40t60_count = db['40-60'].count_documents({})
-        f60t80_count = db['60-80'].count_documents({})
-        f80t100_count = db['80-100'].count_documents({})
-        gt100_count = db['>100'].count_documents({})
+        cursor = db.speed_data.aggregate(pipeline)
 
-        data = {
-            'lt20_count': lt20_count,
-            'f20t40_count': f20t40_count,
-            'f40t60_count': f40t60_count,
-            'f60t80_count': f60t80_count,
-            'f80t100_count': f80t100_count,
-            'gt100_count': gt100_count,
-            'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        }
+        # Initialize counts for each speed range and land
+        speed_range_counts = {"<20": 0, "20-40": 0, "40-60": 0, "60-80": 0, "80-100": 0, ">100": 0}
 
-        producer.send(topic, value=json.dumps(data).encode('utf-8'))
+        for document in cursor:
+            land = document["_id"]["land"]
+            speed = document["_id"]["speed"]
+            count = document["count"]
+
+            # Update counts based on speed range
+            if speed < 20:
+                speed_range_counts["<20"] += count
+            elif 20 <= speed < 40:
+                speed_range_counts["20-40"] += count
+            elif 40 <= speed < 60:
+                speed_range_counts["40-60"] += count
+            elif 60 <= speed < 80:
+                speed_range_counts["60-80"] += count
+            elif 80 <= speed < 100:
+                speed_range_counts["80-100"] += count
+            else:
+                speed_range_counts[">100"] += count
+
+        # Add timestamp
+        speed_range_counts['timestamp'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        producer.send(topic, value=json.dumps(speed_range_counts).encode('utf-8'))
         time.sleep(1)
+
   
 
 
