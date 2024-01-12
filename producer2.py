@@ -48,7 +48,7 @@ def main():
         api_version = (0,10,1)
     )
     
-    topic3 = 'testc'
+    topic3 = 'cardata'
 
 
     producer_thread3 = threading.Thread(target=send_data_to_kafka, args=(producer, topic3))

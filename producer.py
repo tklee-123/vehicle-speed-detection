@@ -27,8 +27,8 @@ def main():
         api_version = (0,10,1)
     )
     
-    topic1 = 'testa'
-    topic4 = 'testd'
+    topic1 = 'videoland1'
+    topic4 = 'videoland2'
     video_path1 = 'files/videoTest.mp4'
     video_path2 = 'files/cars.mp4'
     

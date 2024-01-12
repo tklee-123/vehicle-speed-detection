@@ -33,7 +33,7 @@ def plot_speed_distribution(consumer, speed_ranges):
         plt.show()
 
 def main():
-    topic3 = 'testc'
+    topic3 = 'cardata'
     consumer3 = KafkaConsumer(
         topic3,
         bootstrap_servers=["localhost:9092"],

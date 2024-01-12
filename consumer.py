@@ -186,7 +186,7 @@ def consume_video1(consumer, topic):
                 endTracker[carID] = frameTime
                 speed = estimateSpeed(carID)
                 print(f'End tracking car land1 at {frameTime}, speed: {speed}')
-                saveCar(speed, frame[ty:ty + th, tx:tx + tw],"land1")
+                saveCar(speed, image[ty:ty + th, tx:tx + tw],"land1")
         cv2.imshow('result3', resultImage)
 
         if cv2.waitKey(1) == ord('q'):
@@ -281,7 +281,7 @@ def consume_video2(consumer, topic):
                 endTracker[carID] = frameTime
                 speed = estimateSpeed(carID)
                 print(f'End tracking car land2 at {frameTime}, speed: {speed}')
-                saveCar(speed, frame[ty:ty + th, tx:tx + tw],"land2")
+                saveCar(speed, image[ty:ty + th, tx:tx + tw],"land2")
         cv2.imshow('result4', resultImage)
 
         if cv2.waitKey(1) == ord('q'):
@@ -291,8 +291,8 @@ def consume_video2(consumer, topic):
                 
 
 def main():
-    topic1 = "testa"
-    topic4 = 'testd'
+    topic1 = "videoland1"
+    topic4 = 'videoland2'
     consumer1 = KafkaConsumer(
         topic1,
         bootstrap_servers=["localhost:9092"],
